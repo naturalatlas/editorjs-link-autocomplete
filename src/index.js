@@ -143,8 +143,7 @@ export default class LinkAutocomplete {
     /**
      * Config params
      */
-    this.searchEndpointUrl = this.config.endpoint;
-    this.searchQueryParam = this.config.queryParam;
+    this.fetch = this.config.fetch;
 
     /**
      * Tool's nodes list
@@ -266,7 +265,7 @@ export default class LinkAutocomplete {
      */
     this.nodes.inputWrapper = Dom.make('div', LinkAutocomplete.CSS.field);
     this.nodes.inputField = Dom.make('input', LinkAutocomplete.CSS.fieldInput, {
-      placeholder: this.api.i18n.t(this.isServerEnabled ? DICTIONARY.pasteOrSearch : DICTIONARY.pasteALink),
+      placeholder: this.api.i18n.t(DICTIONARY.pasteOrSearch),
     });
 
     this.nodes.inputWrapper.appendChild(this.nodes.inputField);
@@ -428,13 +427,6 @@ export default class LinkAutocomplete {
         href: searchString,
       } ]);
 
-      return;
-    }
-
-    /**
-     * If no server endpoint then do nothing
-     */
-    if (!this.isServerEnabled) {
       return;
     }
 
@@ -866,29 +858,11 @@ export default class LinkAutocomplete {
    * @returns {Promise<SearchItemData[]>}
    */
   async searchRequest(searchString) {
-    /**
-     * Compose query string
-     *
-     * @type {string}
-     */
-    const queryString = new URLSearchParams({ [this.searchQueryParam]: searchString }).toString();
-
     try {
       /**
-       * Get raw search data
+       * Get search data
        */
-      const searchResponseRaw = await fetch(`${this.searchEndpointUrl}?${queryString}`);
-
-      /**
-       * Get JSON decoded data
-       */
-      const searchResponse = await searchResponseRaw.json();
-
-      if (searchResponse && searchResponse.success) {
-        return searchResponse.items;
-      } else {
-        console.warn('Link Autocomplete: invalid response format: "success: true" expected, but got %o. Response: %o', searchResponse.success, searchResponse);
-      }
+      return await this.fetch(searchString);
     } catch (e) {
       notifier.show({
         message: `${DICTIONARY.searchRequestError} "${e.message}"`,
@@ -897,15 +871,6 @@ export default class LinkAutocomplete {
     }
 
     return [];
-  }
-
-  /**
-   * Do we need to send requests to the server
-   *
-   * @returns {boolean}
-   */
-  isServerEnabled() {
-    return !!this.searchEndpointUrl;
   }
 
   /**

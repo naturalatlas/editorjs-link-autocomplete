@@ -1,6 +1,6 @@
 # Link Autocomplete
 
-An upgraded version of base inline link tool with your server's search.
+An upgraded version of base inline link tool with a custom autocomplete function
 
 ![](example/assets/example.png)
 
@@ -11,19 +11,11 @@ An upgraded version of base inline link tool with your server's search.
 Get the package
 
 ```shell
-npm i --save-dev @editorjs/link-autocomplete
+npm i --save-dev @naturalatlas/editorjs-link-autocomplete
 ```
 
 ```shell
-yarn add -D @editorjs/link-autocomplete
-```
-
-### Load from CDN
-
-You can use package from jsDelivr CDN.
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/link-autocomplete"></script>
+yarn add -D @naturalatlas/editorjs-link-autocomplete
 ```
 
 ## Usage
@@ -41,8 +33,7 @@ var editor = EditorJS({
     link: {
       class: LinkAutocomplete,
       config: {
-        endpoint: 'http://localhost:3000/',
-        queryParam: 'search'
+        fetch: async (searchString) => { /* return results here */ }
       }
     }
   },
@@ -53,42 +44,25 @@ var editor = EditorJS({
 
 ## Config Params
 
-Search requests will be sent to the server by `GET` requests with a search string as a query param. 
+`fetch` — async method that returns array of results.
 
-List of server connection params which may be configured.
+## Data Format
 
-`endpoint` — URL of the server's endpoint for getting suggestions.
-
-`queryParam` — param name to be sent with the search string.
-
-If there is no `endpoint` then tool will work only for pasted links.
-
-## Server response data format
-
-For endpoint requests server **should** answer with a JSON containing following properties:
-
-- `success` (`boolean`) — state of processing: `true` or `false`  
-- `items` (`{name: string, href: string, description?: string}`) — an array of found items. Each item *must* contain `name` and `href` params. The `description`
-param is optional. You can also return any other fields which will be stored in a link dataset.
-
-Content-Type: `application/json`.
+The fetch method should return objects with the following format:
 
 ```json
-{
-  "success": true,
-  "items": [
-    {
-      "href": "https://codex.so/editor",
-      "name": "The first item",
-      "description": ""
-    },
-    {
-      "href": "https://codex.so/media",
-      "name": "The second item",
-      "description": ""
-    }
-  ]
-}
+[
+  {
+    "href": "https://codex.so/editor",
+    "name": "The first item",
+    "description": ""
+  },
+  {
+    "href": "https://codex.so/media",
+    "name": "The second item",
+    "description": ""
+  }
+]
 ```
 
 ## Output data
@@ -117,7 +91,6 @@ There is a few phrases to be translated.
 UI items:
 
 - `Paste or search` — placeholder for an input field if server endpoint passed.
-- `Paste a link` — placeholder for the same field if server endpoint is missing.
 
 Error messages:
 
@@ -131,7 +104,6 @@ i18n: {
     tools: {
       LinkAutocomplete: {
         'Paste or search': '...',
-        'Paste a link': '...',
         'Cannot process search request because of': '...',
         'Server responded with invalid data': '...',
         'Link URL is invalid': '...'
